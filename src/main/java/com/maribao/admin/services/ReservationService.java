@@ -88,4 +88,28 @@ public class ReservationService {
         }
         return summary;
     }
+
+    // returns all booked dates for a specific room — used by the booking calendar to block unavailable dates
+    public List<LocalDate> getBookedDatesByRoom(String roomName) {
+        List<LocalDate> bookedDates = new ArrayList<>();
+        for (Reservation r : reservations) {
+            if (r.getRoomName().equals(roomName) && !r.getStatus().equals("cancelled")) {
+                LocalDate date = r.getCheckIn();
+                while (!date.isAfter(r.getCheckOut())) {
+                    bookedDates.add(date);
+                    date = date.plusDays(1);
+                }
+            }
+        }
+        return bookedDates;
+    }
+
+    // saves a guest comment on an existing reservation — called after the guest checks out
+    public Reservation addComment(String id, String comment) {
+        Reservation reservation = getById(id);
+        if (reservation != null) {
+            reservation.setComment(comment);
+        }
+        return reservation;
+    }
 }

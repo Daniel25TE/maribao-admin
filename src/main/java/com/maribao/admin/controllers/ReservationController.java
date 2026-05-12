@@ -86,4 +86,22 @@ public class ReservationController {
     public Map<String, Long> getSummary() {
         return reservationService.getStatusSummary();
     }
+
+    // GET /api/reservations/booked-dates?roomName=Sol — returns all booked dates for a room
+    @GetMapping("/booked-dates")
+    public List<LocalDate> getBookedDates(@RequestParam String roomName) {
+        return reservationService.getBookedDatesByRoom(roomName);
+    }
+
+    // PUT /api/reservations/{id}/comment — saves a guest review on a reservation
+    @PutMapping("/{id}/comment")
+    public ResponseEntity<Reservation> addComment(@PathVariable String id,
+                                                  @RequestBody Map<String, String> body) {
+        String comment = body.get("comment");
+        Reservation updated = reservationService.addComment(id, comment);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
 }
