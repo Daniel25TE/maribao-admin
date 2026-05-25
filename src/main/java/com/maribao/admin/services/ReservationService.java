@@ -1,6 +1,7 @@
 package com.maribao.admin.services;
 
 import com.maribao.admin.models.Reservation;
+import com.maribao.admin.repositories.DynamoDbReservationRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -10,57 +11,56 @@ import java.util.List;
 import java.util.Map;
 
 // handles all the business logic for reservations.
-// for now data lives in memory using an ArrayList — in module 2 this gets replaced with DynamoDB.
+// used to store everything in a list in memory — now it goes through DynamoDB so data survives restarts.
 @Service
 public class ReservationService {
 
-    // in-memory list that holds all reservations while the app is running
-    private final List<Reservation> reservations = new ArrayList<>();
+    private final DynamoDbReservationRepository repository;
 
-    // returns every reservation in the system
+    public ReservationService(DynamoDbReservationRepository repository) {
+        this.repository = repository;
+    }
+
+    // returns all reservations — used in the admin panel table
     public List<Reservation> getAll() {
-        return reservations;
+        return repository.findAll();
     }
 
-    // finds one reservation by its id, returns null if it doesn't exist
+    // looks up one reservation by id — returns null if it doesn't exist
     public Reservation getById(String id) {
-        for (Reservation r : reservations) {
-            if (r.getId().equals(id)) {
-                return r;
-            }
-        }
-        return null;
+        return repository.findById(id);
     }
 
-    // adds a new reservation to the list
+    // saves a new reservation — called when a guest books through the website
     public Reservation create(Reservation reservation) {
-        reservations.add(reservation);
+        repository.save(reservation);
         return reservation;
     }
 
-    // updates the status of a reservation — e.g. from pending to active
+    // changes the status of a reservation — e.g. from pending to confirmed
     public Reservation updateStatus(String id, String newStatus) {
         Reservation reservation = getById(id);
         if (reservation != null) {
+            repository.updateStatus(id, newStatus);
             reservation.setStatus(newStatus);
         }
         return reservation;
     }
 
-    // removes a reservation permanently
+    // deletes a reservation for good — only if it actually exists
     public boolean delete(String id) {
         Reservation reservation = getById(id);
         if (reservation != null) {
-            reservations.remove(reservation);
+            repository.delete(id);
             return true;
         }
         return false;
     }
 
-    // filters reservations by status — useful for showing only pending or only active ones
+    // filters reservations by status — loops through everything and returns the ones that match
     public List<Reservation> getByStatus(String status) {
         List<Reservation> result = new ArrayList<>();
-        for (Reservation r : reservations) {
+        for (Reservation r : repository.findAll()) {
             if (r.getStatus().equals(status)) {
                 result.add(r);
             }
@@ -68,10 +68,10 @@ public class ReservationService {
         return result;
     }
 
-    // filters reservations that overlap with a given date range — used to block booked dates on the calendar
+    // returns reservations that overlap with a date range — the booking calendar uses this to block unavailable dates
     public List<Reservation> getByDateRange(LocalDate from, LocalDate to) {
         List<Reservation> result = new ArrayList<>();
-        for (Reservation r : reservations) {
+        for (Reservation r : repository.findAll()) {
             if (!r.getCheckOut().isBefore(from) && !r.getCheckIn().isAfter(to)) {
                 result.add(r);
             }
@@ -79,20 +79,20 @@ public class ReservationService {
         return result;
     }
 
-    // returns a summary of how many reservations exist per status
+    // counts how many reservations exist per status — e.g. pending: 3, confirmed: 10
     public Map<String, Long> getStatusSummary() {
         Map<String, Long> summary = new HashMap<>();
-        for (Reservation r : reservations) {
+        for (Reservation r : repository.findAll()) {
             String status = r.getStatus();
             summary.put(status, summary.getOrDefault(status, 0L) + 1);
         }
         return summary;
     }
 
-    // returns all booked dates for a specific room — used by the booking calendar to block unavailable dates
+    // expands each reservation into individual dates for a specific room — the booking calendar uses this to show which days are taken
     public List<LocalDate> getBookedDatesByRoom(String roomName) {
         List<LocalDate> bookedDates = new ArrayList<>();
-        for (Reservation r : reservations) {
+        for (Reservation r : repository.findAll()) {
             if (r.getRoomName().equals(roomName) && !r.getStatus().equals("cancelled")) {
                 LocalDate date = r.getCheckIn();
                 while (!date.isAfter(r.getCheckOut())) {
@@ -104,10 +104,11 @@ public class ReservationService {
         return bookedDates;
     }
 
-    // saves a guest comment on an existing reservation — called after the guest checks out
+    // attaches a comment to a reservation — guests use this to leave notes when booking
     public Reservation addComment(String id, String comment) {
         Reservation reservation = getById(id);
         if (reservation != null) {
+            repository.updateComment(id, comment);
             reservation.setComment(comment);
         }
         return reservation;

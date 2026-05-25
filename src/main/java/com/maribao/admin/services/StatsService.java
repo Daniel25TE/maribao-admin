@@ -1,63 +1,57 @@
 package com.maribao.admin.services;
 
+import com.maribao.admin.repositories.DynamoDbStatsRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 // tracks every visit to the Maribao website so the owner can see traffic in the admin panel.
-// for now visits live in memory — in module 2 this moves to DynamoDB.
+// used to store visits in a list in memory — now it goes through DynamoDB so the count survives restarts.
 @Service
 public class StatsService {
 
-    // each entry is a date string representing one visit e.g. "2026-05-11"
-    private final List<String> visits = new ArrayList<>();
+    private final DynamoDbStatsRepository repository;
 
-    // logs a new visit for today — called every time someone lands on the website
+    public StatsService(DynamoDbStatsRepository repository) {
+        this.repository = repository;
+    }
+
+    // logs a new visit — called every time someone lands on the website
     public void logVisit() {
-        visits.add(LocalDate.now().toString());
+        repository.saveVisit();
     }
 
-    // returns the total number of visits since the app started
+    // returns the total visit count — the admin dashboard shows this as the top-level number
     public int getTotalVisits() {
-        return visits.size();
+        return repository.getTotalVisits();
     }
 
-    // returns how many visits happened today
+    // looks up today's date in the grouped results and returns the count — defaults to 0 if nobody visited yet
     public long getVisitsToday() {
         String today = LocalDate.now().toString();
-        long count = 0;
-        for (String visit : visits) {
-            if (visit.equals(today)) {
-                count++;
-            }
-        }
-        return count;
+        Map<String, Long> byDate = repository.getVisitsByDate();
+        return byDate.getOrDefault(today, 0L);
     }
 
-    // returns visit counts grouped by day — used to build the daily chart in the admin panel
+    // returns visit counts grouped by day — the admin panel uses this to build the daily chart
     public Map<String, Long> getVisitsPerDay() {
-        Map<String, Long> result = new HashMap<>();
-        for (String visit : visits) {
-            result.put(visit, result.getOrDefault(visit, 0L) + 1);
-        }
-        return result;
+        return repository.getVisitsByDate();
     }
 
-    // returns visit counts grouped by month e.g. "2026-05" -> 142 visits
+    // groups daily visits into monthly totals — e.g. "2026-05" → 142 visits
     public Map<String, Long> getVisitsPerMonth() {
+        Map<String, Long> byDate = repository.getVisitsByDate();
         Map<String, Long> result = new HashMap<>();
-        for (String visit : visits) {
-            String month = visit.substring(0, 7); // grabs "2026-05" from "2026-05-11"
-            result.put(month, result.getOrDefault(month, 0L) + 1);
+        for (Map.Entry<String, Long> entry : byDate.entrySet()) {
+            String month = entry.getKey().substring(0, 7); // grabs "2026-05" from "2026-05-18"
+            result.put(month, result.getOrDefault(month, 0L) + entry.getValue());
         }
         return result;
     }
 
-    // returns a full summary the admin dashboard shows at a glance
+    // puts together the full stats summary the admin dashboard shows at a glance
     public Map<String, Object> getSummary() {
         Map<String, Object> summary = new HashMap<>();
         summary.put("total", getTotalVisits());

@@ -4,6 +4,7 @@ import com.maribao.admin.interfaces.MediaRepository;
 import com.maribao.admin.models.MediaItem;
 import com.maribao.admin.models.Photo;
 import com.maribao.admin.models.Video;
+import com.maribao.admin.repositories.DynamoDbMediaRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,43 +12,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 // handles all the business logic for photos and videos uploaded through the admin panel.
-// for now data lives in memory — in module 2 this gets replaced with DynamoDB + Cloudinary.
+// used to store everything in two lists in memory — now it goes through DynamoDB so the gallery persists.
 @Service
 public class MediaService implements MediaRepository {
 
-    // separate lists for photos and videos
-    private final List<Photo> photos = new ArrayList<>();
-    private final List<Video> videos = new ArrayList<>();
+    private final DynamoDbMediaRepository repository;
+
+    public MediaService(DynamoDbMediaRepository repository) {
+        this.repository = repository;
+    }
 
     // --- PHOTOS ---
 
-    // returns all photos uploaded to the gallery
+    // returns all photos — used in the gallery page
     public List<Photo> getAllPhotos() {
-        return photos;
+        return repository.findAllPhotos();
     }
 
-    // adds a new photo — url comes from Cloudinary in module 2, for now it's passed manually
+    // creates a new photo record — the url comes from Cloudinary after the owner uploads the image
     public Photo addPhoto(String id, String url, String altText, String room) {
         Photo photo = new Photo(id, url, altText, LocalDateTime.now(), room);
-        photos.add(photo);
+        repository.savePhoto(photo);
         return photo;
     }
 
-    // removes a photo by id — also needs to delete from Cloudinary in module 2
+    // removes a photo record — does not delete it from Cloudinary
     public boolean deletePhoto(String id) {
-        for (Photo p : photos) {
-            if (p.getId().equals(id)) {
-                photos.remove(p);
-                return true;
-            }
-        }
-        return false;
+        repository.deletePhoto(id);
+        return true;
     }
 
-    // filters photos by room — e.g. only show #Sol photos in the gallery
+    // filters photos by room — used when the gallery page shows photos for a specific room
     public List<Photo> getPhotosByRoom(String room) {
         List<Photo> result = new ArrayList<>();
-        for (Photo p : photos) {
+        for (Photo p : repository.findAllPhotos()) {
             if (p.getRoom().equals(room)) {
                 result.add(p);
             }
@@ -57,36 +55,31 @@ public class MediaService implements MediaRepository {
 
     // --- VIDEOS ---
 
-    // returns all videos uploaded for the homepage slider
+    // returns all videos — used in the gallery page
     public List<Video> getAllVideos() {
-        return videos;
+        return repository.findAllVideos();
     }
 
-    // adds a new video — url comes from Cloudinary in module 2, for now it's passed manually
+    // creates a new video record — the url comes from Cloudinary after the owner uploads the video
     public Video addVideo(String id, String url, String altText, String title) {
         Video video = new Video(id, url, altText, LocalDateTime.now(), title);
-        videos.add(video);
+        repository.saveVideo(video);
         return video;
     }
 
-    // removes a video by id
+    // removes a video record — does not delete it from Cloudinary
     public boolean deleteVideo(String id) {
-        for (Video v : videos) {
-            if (v.getId().equals(id)) {
-                videos.remove(v);
-                return true;
-            }
-        }
-        return false;
+        repository.deleteVideo(id);
+        return true;
     }
 
     // --- SHARED ---
 
-    // returns all media items together — photos and videos in one list
+    // combines photos and videos into one list — used when the admin panel shows all media together
     public List<MediaItem> getAllMedia() {
         List<MediaItem> all = new ArrayList<>();
-        all.addAll(photos);
-        all.addAll(videos);
+        all.addAll(repository.findAllPhotos());
+        all.addAll(repository.findAllVideos());
         return all;
     }
 }

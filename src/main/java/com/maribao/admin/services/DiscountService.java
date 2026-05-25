@@ -1,6 +1,7 @@
 package com.maribao.admin.services;
 
 import com.maribao.admin.models.Discount;
+import com.maribao.admin.repositories.DynamoDbDiscountRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -8,22 +9,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 // handles all the business logic for discount dates set by the hotel owner.
-// these discounts show up highlighted on the booking calendar on the website.
+// used to store everything in a list in memory — now it goes through DynamoDB so discounts don't disappear on restart.
 @Service
 public class DiscountService {
 
-    // in-memory list of all discounts while the app is running
-    private final List<Discount> discounts = new ArrayList<>();
+    private final DynamoDbDiscountRepository repository;
 
-    // returns every discount the owner has created, active or not — used in the admin panel table
-    public List<Discount> getAll() {
-        return discounts;
+    public DiscountService(DynamoDbDiscountRepository repository) {
+        this.repository = repository;
     }
 
-    // returns only the discounts that are currently active — this is what the booking calendar uses
+    // returns all discounts, active or not — used in the admin panel table so the owner can see everything
+    public List<Discount> getAll() {
+        return repository.findAll();
+    }
+
+    // returns only the active discounts — the booking calendar uses this to show discounted prices
     public List<Discount> getActive() {
         List<Discount> result = new ArrayList<>();
-        for (Discount d : discounts) {
+        for (Discount d : repository.findAll()) {
             if (d.isActive()) {
                 result.add(d);
             }
@@ -31,44 +35,41 @@ public class DiscountService {
         return result;
     }
 
-    // saves a new discount date the owner set from the admin panel
+    // stores a new discount the owner created from the admin panel
     public Discount create(Discount discount) {
-        discounts.add(discount);
+        repository.save(discount);
         return discount;
     }
 
-    // looks up a single discount by its id — used internally by toggle and delete
+    // looks up a single discount by id — used internally by toggle and delete
     public Discount getById(String id) {
-        for (Discount d : discounts) {
-            if (d.getId().equals(id)) {
-                return d;
-            }
-        }
-        return null;
+        return repository.findById(id);
     }
 
-    // toggles a discount on or off without deleting it
+    // flips a discount on or off without deleting it — the owner uses this to temporarily disable a discount
     public Discount toggleActive(String id) {
-        Discount discount = getById(id);
+        Discount discount = repository.findById(id);
         if (discount != null) {
-            discount.setActive(!discount.isActive());
+            boolean newActive = !discount.isActive();
+            repository.updateActive(id, newActive);
+            discount.setActive(newActive);
         }
         return discount;
     }
 
-    // deletes a discount completely — owner uses this when a promo is no longer needed at all
+    // deletes a discount for good — returns false if it doesn't exist
     public boolean delete(String id) {
-        Discount discount = getById(id);
+        Discount discount = repository.findById(id);
         if (discount != null) {
-            discounts.remove(discount);
+            repository.delete(id);
             return true;
         }
         return false;
     }
 
-    // checks if a specific date has an active discount and returns the discounted price
+    // checks if a date has an active discount and returns the adjusted price — if no discount found, returns the original price
     public double getPriceForDate(LocalDate date, double originalPrice) {
-        for (Discount d : discounts) {
+        for (Discount d : repository.findAll()) {
             if (d.isActive() && d.getDate().equals(date)) {
                 return d.applyDiscount(originalPrice);
             }
