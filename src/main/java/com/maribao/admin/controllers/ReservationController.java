@@ -46,8 +46,8 @@ public class ReservationController {
         return ResponseEntity.ok(created);
     }
 
-    // PUT /api/reservations/{id}/status — updates the status of a reservation
-    @PutMapping("/{id}/status")
+    // PATCH /api/reservations/{id}/status — updates the status of a reservation
+    @PatchMapping("/{id}/status")
     public ResponseEntity<Reservation> updateStatus(@PathVariable String id,
                                                     @RequestBody Map<String, String> body) {
         String newStatus = body.get("status");
@@ -93,8 +93,8 @@ public class ReservationController {
         return reservationService.getBookedDatesByRoom(roomName);
     }
 
-    // PUT /api/reservations/{id}/comment — saves a guest review on a reservation
-    @PutMapping("/{id}/comment")
+    // PATCH /api/reservations/{id}/comment — saves a guest review on a reservation
+    @PatchMapping("/{id}/comment")
     public ResponseEntity<Reservation> addComment(@PathVariable String id,
                                                   @RequestBody Map<String, String> body) {
         String comment = body.get("comment");

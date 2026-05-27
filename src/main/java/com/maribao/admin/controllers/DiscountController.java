@@ -49,8 +49,8 @@ public class DiscountController {
         return ResponseEntity.ok(created);
     }
 
-    // PUT /api/discounts/{id}/toggle — turns a discount on or off
-    @PutMapping("/{id}/toggle")
+    // PATCH /api/discounts/{id}/toggle — turns a discount on or off
+    @PatchMapping("/{id}/toggle")
     public ResponseEntity<Discount> toggle(@PathVariable String id) {
         Discount updated = discountService.toggleActive(id);
         if (updated == null) {
