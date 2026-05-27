@@ -1,3 +1,5 @@
+> **Module 2 — Cloud Databases:** [README-module2.md](README-module2.md)
+
 # Overview
 
 As a software engineer, I am focused on building strong backend development skills. I chose to learn Java because it
@@ -47,7 +49,7 @@ included as dependencies:
 
 # Future Work
 
-- Connect the backend to AWS DynamoDB to persist data permanently instead of storing it in memory
+- Connect the backend to AWS DynamoDB to persist data permanently instead of storing it in memory — already completed in module 2
 - Integrate Cloudinary to handle real photo and video uploads directly through the admin panel
 - Add admin authentication to protect all endpoints from unauthorized access
 - Implement email notifications when a reservation is created or cancelled
