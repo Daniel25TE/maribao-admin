@@ -6,7 +6,7 @@ import com.maribao.admin.models.Video;
 import java.util.List;
 
 // any class that manages photos and videos in this app must follow this contract.
-// MediaService implements this right now using in-memory lists — in module 2 a DynamoDB version will take over.
+// MediaService implements this using DynamoDB since module 2.
 public interface MediaRepository {
 
     // photos
@@ -17,6 +17,6 @@ public interface MediaRepository {
 
     // videos
     List<Video> getAllVideos();
-    Video addVideo(String id, String url, String altText, String title);
+    Video addVideo(String id, String url, String altText, String title, String room);
     boolean deleteVideo(String id);
 }
