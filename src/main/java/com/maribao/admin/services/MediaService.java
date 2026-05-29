@@ -61,10 +61,21 @@ public class MediaService implements MediaRepository {
     }
 
     // creates a new video record — the url comes from Cloudinary after the owner uploads the video
-    public Video addVideo(String id, String url, String altText, String title) {
-        Video video = new Video(id, url, altText, LocalDateTime.now(), title);
+    public Video addVideo(String id, String url, String altText, String title, String room) {
+        Video video = new Video(id, url, altText, LocalDateTime.now(), title, room);
         repository.saveVideo(video);
         return video;
+    }
+
+    // filters videos by room — same logic as photos
+    public List<Video> getVideosByRoom(String room) {
+        List<Video> result = new ArrayList<>();
+        for (Video v : repository.findAllVideos()) {
+            if (v.getRoom().equals(room)) {
+                result.add(v);
+            }
+        }
+        return result;
     }
 
     // removes a video record — does not delete it from Cloudinary
@@ -81,5 +92,13 @@ public class MediaService implements MediaRepository {
         all.addAll(repository.findAllPhotos());
         all.addAll(repository.findAllVideos());
         return all;
+    }
+
+    // returns all photos and videos for a specific room in one list — this is what makes the two tables feel related
+    public List<MediaItem> getMediaByRoom(String room) {
+        List<MediaItem> result = new ArrayList<>();
+        result.addAll(getPhotosByRoom(room));
+        result.addAll(getVideosByRoom(room));
+        return result;
     }
 }

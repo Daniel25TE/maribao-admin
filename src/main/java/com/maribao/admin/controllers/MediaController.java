@@ -43,6 +43,13 @@ public class MediaController {
         return mediaService.getPhotosByRoom(room);
     }
 
+    // GET /api/media/room/{room} — returns all photos and videos for a specific room in one call
+    // this is the endpoint that shows the relationship between the two tables
+    @GetMapping("/room/{room}")
+    public List<MediaItem> getMediaByRoom(@PathVariable String room) {
+        return mediaService.getMediaByRoom(room);
+    }
+
     // POST /api/media/photos — adds a new photo
     @PostMapping("/photos")
     public ResponseEntity<Photo> addPhoto(@RequestBody Map<String, String> body) {
@@ -79,7 +86,8 @@ public class MediaController {
         String url = body.get("url");
         String altText = body.get("altText");
         String title = body.get("title");
-        Video video = mediaService.addVideo(id, url, altText, title);
+        String room = body.get("room");
+        Video video = mediaService.addVideo(id, url, altText, title, room);
         return ResponseEntity.ok(video);
     }
 

@@ -72,6 +72,7 @@ public class DynamoDbMediaRepository {
         item.put("url", AttributeValue.fromS(video.getUrl()));
         item.put("altText", AttributeValue.fromS(video.getAltText()));
         item.put("title", AttributeValue.fromS(video.getTitle()));
+        item.put("room", AttributeValue.fromS(video.getRoom()));
         item.put("uploadedAt", AttributeValue.fromS(video.getUploadedAt().toString()));
 
         dynamoDbClient.putItem(PutItemRequest.builder()
@@ -121,7 +122,8 @@ public class DynamoDbMediaRepository {
                 item.get("url").s(),
                 item.get("altText").s(),
                 LocalDateTime.parse(item.get("uploadedAt").s()),
-                item.get("title").s()
+                item.get("title").s(),
+                item.get("room").s()
         );
     }
 }

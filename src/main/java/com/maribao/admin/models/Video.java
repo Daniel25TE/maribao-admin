@@ -7,10 +7,12 @@ import java.time.LocalDateTime;
 public class Video extends MediaItem {
 
     private String title;   // label shown in the admin panel to identify the video
+    private String room;    // which hotel room this video belongs to — same as photos
 
-    public Video(String id, String url, String altText, LocalDateTime uploadedAt, String title) {
+    public Video(String id, String url, String altText, LocalDateTime uploadedAt, String title, String room) {
         super(id, url, altText, uploadedAt);
         this.title = title;
+        this.room = room;
     }
 
     // tells the rest of the app this media item is a video
@@ -21,4 +23,7 @@ public class Video extends MediaItem {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    public String getRoom() { return room; }
+    public void setRoom(String room) { this.room = room; }
 }
