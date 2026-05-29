@@ -6,7 +6,7 @@ This module builds directly on the Java Spring Boot REST API I built in Module 1
 
 I built this on top of the Maribao Admin project, which is a real backend I am building for a hotel business. The frontend already exists and is live at maribao.com. Every module I complete in school gets applied directly to this project, which keeps me motivated because the work actually matters to someone.
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/Q-WOKrlOw6Y)
 
 # Cloud Database
 
