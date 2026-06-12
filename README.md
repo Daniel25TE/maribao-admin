@@ -1,4 +1,6 @@
 > **Module 2 — Cloud Databases:** [README-module2.md](README-module2.md)
+>
+> **Module 3 — Web Apps:** [README-module3.md](admin-ui/README-module3.md)
 
 # Overview
 
