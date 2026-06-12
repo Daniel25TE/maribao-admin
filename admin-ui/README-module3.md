@@ -33,6 +33,10 @@ The project is written in TypeScript using React 19 as the UI framework and Vite
 - Cloudinary — handles media uploads directly from the browser using an unsigned upload preset. I chose it over S3 because Cloudinary's free tier does not expire after 12 months
 - uuid — generates unique IDs on the client side before sending new records to the API
 
+# New Files for This Module
+
+The `admin-ui` directory was created entirely for this module — it is the React application. Every subdirectory and file inside it (components, hooks, services, pages, context, types, utils, etc.) was created as part of module 3.
+
 # Useful Websites
 
 - [React Documentation](https://react.dev)
