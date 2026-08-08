@@ -8,7 +8,7 @@ export async function getDiscounts(): Promise<Discount[]> {
 }
 
 // saves a new discount to the database
-export async function createDiscount(discount: Omit<Discount, 'id'>): Promise<Discount> {
+export async function createDiscount(discount: Discount): Promise<Discount> {
   const response = await api.post('/api/discounts', discount)
   return response.data
 }

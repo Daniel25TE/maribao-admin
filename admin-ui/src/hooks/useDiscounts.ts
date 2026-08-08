@@ -24,7 +24,7 @@ function useDiscounts() {
     }
   }
 
-  async function add(discount: Omit<Discount, 'id'>) {
+  async function add(discount: Discount) {
     try {
       const created = await createDiscount(discount)
       setDiscounts(prev => [...prev, created])
