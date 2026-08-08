@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Maribao Admin Backend - Spring Boot on AWS Lambda + API Gateway
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: java21
+    Architectures:
+      - x86_64
+
+Resources:
+
+  MaribaoAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: com.maribao.admin.StreamLambdaHandler::handleRequest
+      # The flat fat JAR produced by maven-shade-plugin (Lambda-compatible format)
+      CodeUri: target/admin-0.0.1-SNAPSHOT.jar
+      Description: Maribao hotel admin REST API
+      # SnapStart dramatically reduces Java cold start times (free, no extra cost)
+      SnapStart:
+        ApplyOn: PublishedVersions
+      AutoPublishAlias: live
+      Environment:
+        Variables:
+          STRIPE_SECRET_KEY: '{{resolve:ssm:/maribao/stripe-secret-key}}'
+          STRIPE_WEBHOOK_SECRET: '{{resolve:ssm:/maribao/stripe-webhook-secret}}'
+          FRONTEND_URL: 'https://maribao.com'
+      Policies:
+        # DynamoDB access for all 5 tables
+        - DynamoDBCrudPolicy:
+            TableName: maribao-reservations
+        - DynamoDBCrudPolicy:
+            TableName: maribao-photos
+        - DynamoDBCrudPolicy:
+            TableName: maribao-videos
+        - DynamoDBCrudPolicy:
+            TableName: maribao-discounts
+        - DynamoDBCrudPolicy:
+            TableName: maribao-visits
+      Events:
+        # REST API (v1) — this is the format aws-serverless-java-container expects
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway base URL — use this in the frontend instead of the old Render URL"
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod'
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt MaribaoAdminFunction.Arn

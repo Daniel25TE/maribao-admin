@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<aws.serverless.container.version>2.0.3</aws.serverless.container.version>
+		<stripe.version>26.3.0</stripe.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -47,6 +49,7 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- AWS SDK -->
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>dynamodb</artifactId>
@@ -58,6 +61,24 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>regions</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>ses</artifactId>
+		</dependency>
+
+		<!-- Lambda adapter: wraps Spring Boot so it can run inside AWS Lambda -->
+		<dependency>
+			<groupId>com.amazonaws.serverless</groupId>
+			<artifactId>aws-serverless-java-container-springboot3</artifactId>
+			<version>${aws.serverless.container.version}</version>
+		</dependency>
+
+		<!-- Stripe SDK for payment processing -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>${stripe.version}</version>
 		</dependency>
 
 		<dependency>
@@ -80,10 +101,36 @@
 
 	<build>
 		<plugins>
+			<!--
+				Shade plugin creates a flat fat JAR (admin-0.0.1-SNAPSHOT.jar) that Lambda can load.
+				Lambda can't use Spring Boot's nested BOOT-INF format, so we need this flat JAR.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+				Spring Boot plugin still lets you run locally with `mvn spring-boot:run`.
+				The -spring-boot classifier keeps its executable JAR separate from the shade JAR.
+			-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<classifier>spring-boot</classifier>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -92,6 +139,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

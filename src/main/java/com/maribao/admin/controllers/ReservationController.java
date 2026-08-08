@@ -104,4 +104,18 @@ public class ReservationController {
         }
         return ResponseEntity.ok(updated);
     }
+
+    // GET /api/reservations/comentarios — public endpoint, returns all reservations that have a guest review
+    // Used by the website to show testimonials on the homepage
+    @GetMapping("/comentarios")
+    public List<Map<String, String>> getComentarios() {
+        return reservationService.getAll().stream()
+                .filter(r -> r.getComment() != null && !r.getComment().isBlank())
+                .map(r -> Map.of(
+                        "id", r.getId(),
+                        "nombre", r.getGuestName(),
+                        "comentario", r.getComment()
+                ))
+                .toList();
+    }
 }

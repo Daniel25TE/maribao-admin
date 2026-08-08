@@ -1,0 +1,15 @@
+# SAM deployment defaults — run `sam deploy` from the admin/ directory
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name          = "maribao-admin"
+s3_bucket           = ""           # SAM will create a managed S3 bucket on first deploy
+s3_prefix           = "maribao-admin"
+region              = "us-east-1"
+capabilities        = "CAPABILITY_IAM"
+# Set your AWS profile here if you use named profiles locally
+# profile           = "maribao"
+confirm_changeset   = true
+resolve_s3          = true
