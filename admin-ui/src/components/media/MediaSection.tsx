@@ -1,9 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useMedia from '../../hooks/useMedia'
 import { ROOM_NAMES } from '../../constants'
 
 function MediaSection() {
   const { photos, videos, loading, uploading, error, addPhoto, removePhoto, addVideo, removeVideo } = useMedia()
+
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const [lightboxAlt, setLightboxAlt] = useState('')
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setLightboxUrl(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // photo upload form state
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -103,7 +114,12 @@ function MediaSection() {
           {photos.length === 0 && <p className="text-gray-400 text-sm col-span-4">No photos uploaded yet</p>}
           {photos.map(photo => (
             <div key={photo.id} className="relative group bg-white rounded-xl shadow overflow-hidden">
-              <img src={photo.url} alt={photo.altText} className="w-full h-40 object-cover" />
+              <img
+                src={photo.url}
+                alt={photo.altText}
+                className="w-full h-40 object-cover cursor-zoom-in"
+                onClick={() => { setLightboxUrl(photo.url); setLightboxAlt(photo.altText) }}
+              />
               <div className="p-2">
                 <p className="text-xs text-gray-500 truncate">{photo.altText}</p>
                 <p className="text-xs text-blue-500">{photo.room}</p>
@@ -196,6 +212,27 @@ function MediaSection() {
         </div>
       </section>
     </div>
+
+    {/* Lightbox */}
+    {lightboxUrl && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        onClick={() => setLightboxUrl(null)}
+      >
+        <img
+          src={lightboxUrl}
+          alt={lightboxAlt}
+          className="max-w-[90vw] max-h-[90vh] object-contain rounded shadow-2xl"
+          onClick={e => e.stopPropagation()}
+        />
+        <button
+          className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/80 rounded-full w-9 h-9 text-lg leading-none transition"
+          onClick={() => setLightboxUrl(null)}
+        >
+          ✕
+        </button>
+      </div>
+    )}
   )
 }
 
