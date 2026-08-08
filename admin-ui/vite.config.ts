@@ -7,4 +7,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // base path must match the GitHub repo name for GitHub Pages routing to work
+  base: '/maribao-admin/',
 })
