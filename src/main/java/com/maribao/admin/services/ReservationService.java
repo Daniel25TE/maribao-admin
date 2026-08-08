@@ -113,4 +113,29 @@ public class ReservationService {
         }
         return reservation;
     }
+
+    // looks up a reservation by the 6-digit transfer number shown to the guest after booking
+    public Reservation getByTransferNumber(String transferNumber) {
+        return repository.findByTransferNumber(transferNumber);
+    }
+
+    // adds a guest review by transfer number — used on the comment submission page
+    public Reservation addCommentByTransferNumber(String transferNumber, String comment) {
+        Reservation reservation = repository.findByTransferNumber(transferNumber);
+        if (reservation != null) {
+            repository.updateComment(reservation.getId(), comment);
+            reservation.setComment(comment);
+        }
+        return reservation;
+    }
+
+    // cancels a reservation by transfer number — used on the guest cancellation page
+    public Reservation cancelByTransferNumber(String transferNumber) {
+        Reservation reservation = repository.findByTransferNumber(transferNumber);
+        if (reservation != null) {
+            repository.updateStatus(reservation.getId(), "cancelled");
+            reservation.setStatus("cancelled");
+        }
+        return reservation;
+    }
 }

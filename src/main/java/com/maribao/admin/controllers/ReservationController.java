@@ -118,4 +118,29 @@ public class ReservationController {
                 ))
                 .toList();
     }
+
+    // GET /api/reservations/by-transfer/{number} — guests use their 6-digit transfer number to look up their reservation
+    @GetMapping("/by-transfer/{number}")
+    public ResponseEntity<Reservation> getByTransferNumber(@PathVariable String number) {
+        Reservation r = reservationService.getByTransferNumber(number);
+        if (r == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(r);
+    }
+
+    // PATCH /api/reservations/by-transfer/{number}/comment — guest submits a review using their transfer number
+    @PatchMapping("/by-transfer/{number}/comment")
+    public ResponseEntity<Reservation> addCommentByTransferNumber(@PathVariable String number,
+                                                                   @RequestBody Map<String, String> body) {
+        Reservation updated = reservationService.addCommentByTransferNumber(number, body.get("comment"));
+        if (updated == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(updated);
+    }
+
+    // PATCH /api/reservations/by-transfer/{number}/cancel — guest cancels their reservation using their transfer number
+    @PatchMapping("/by-transfer/{number}/cancel")
+    public ResponseEntity<Reservation> cancelByTransferNumber(@PathVariable String number) {
+        Reservation updated = reservationService.cancelByTransferNumber(number);
+        if (updated == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(updated);
+    }
 }

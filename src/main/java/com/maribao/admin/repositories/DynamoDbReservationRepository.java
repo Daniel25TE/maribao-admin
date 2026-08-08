@@ -37,6 +37,9 @@ public class DynamoDbReservationRepository {
         if (reservation.getComment() != null) {
             item.put("comment", AttributeValue.fromS(reservation.getComment()));
         }
+        if (reservation.getTransferNumber() != null) {
+            item.put("transferNumber", AttributeValue.fromS(reservation.getTransferNumber()));
+        }
 
         dynamoDbClient.putItem(PutItemRequest.builder()
                 .tableName(TABLE_NAME)
@@ -98,9 +101,21 @@ public class DynamoDbReservationRepository {
                 .build());
     }
 
+    // Scans the table for a reservation with a matching transferNumber — used for guest lookup and cancellation
+    public Reservation findByTransferNumber(String transferNumber) {
+        ScanResponse response = dynamoDbClient.scan(ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .filterExpression("transferNumber = :tn")
+                .expressionAttributeValues(Map.of(":tn", AttributeValue.fromS(transferNumber)))
+                .build());
+
+        if (response.items().isEmpty()) return null;
+        return mapToReservation(response.items().get(0));
+    }
+
     // DynamoDB gives back a raw map of AttributeValues, this turns it into a real Reservation object
     private Reservation mapToReservation(Map<String, AttributeValue> item) {
-        return new Reservation(
+        Reservation r = new Reservation(
                 item.get("id").s(),
                 item.get("guestName").s(),
                 item.get("email").s(),
@@ -111,5 +126,8 @@ public class DynamoDbReservationRepository {
                 Double.parseDouble(item.get("totalPrice").n()),
                 item.get("status").s()
         );
+        if (item.containsKey("comment")) r.setComment(item.get("comment").s());
+        if (item.containsKey("transferNumber")) r.setTransferNumber(item.get("transferNumber").s());
+        return r;
     }
 }

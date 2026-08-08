@@ -16,6 +16,7 @@ public class Reservation {
     private double totalPrice;
     private String status;         // where the reservation is in its lifecycle: pending, active, paid, cancelled
     private String comment;        // guest review left after their stay, can be empty
+    private String transferNumber; // 6-digit number shown to guests on transfer payments, used for lookup/cancellation
 
     public Reservation(String id, String guestName, String email, String phone,
                        String roomName, LocalDate checkIn, LocalDate checkOut,
@@ -65,4 +66,7 @@ public class Reservation {
 
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+
+    public String getTransferNumber() { return transferNumber; }
+    public void setTransferNumber(String transferNumber) { this.transferNumber = transferNumber; }
 }
