@@ -34,23 +34,23 @@ function DiscountsSection() {
         <h2 className="text-2xl font-bold">Discounts</h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition"
+          className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-4 py-2 rounded-lg transition touch-manipulation text-sm font-medium"
         >
-          {showForm ? 'Cancel' : '+ Add Discount'}
+          {showForm ? 'Cancel' : '+ Add'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow mb-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="bg-white p-4 desk:p-6 rounded-xl shadow mb-6 flex flex-col gap-4">
           <h3 className="font-semibold text-gray-700">New Discount</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 desk:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Date</label>
               <input
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -60,7 +60,7 @@ function DiscountsSection() {
                 type="number"
                 value={percentage}
                 onChange={e => setPercentage(e.target.value)}
-                className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
                 min="1"
                 max="100"
                 required
@@ -72,21 +72,58 @@ function DiscountsSection() {
                 type="text"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                className="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
           </div>
           <button
             type="submit"
-            className="self-start bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+            className="w-full desk:w-auto desk:self-start bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition font-medium"
           >
-            Save
+            Save Discount
           </button>
         </form>
       )}
 
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
+      {discounts.length === 0 && (
+        <p className="text-center text-gray-400 py-10">No discounts found</p>
+      )}
+
+      {/* Mobile: card list */}
+      <div className="flex flex-col gap-4 desk:hidden">
+        {discounts.map(discount => (
+          <div key={discount.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-semibold text-gray-800 text-lg">{discount.percentage}% off</p>
+                <p className="text-sm text-gray-500">{discount.description}</p>
+                <p className="text-sm text-gray-400 mt-1">{formatDate(discount.date)}</p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ml-2 ${discount.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                {discount.active ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+            <div className="flex gap-2 pt-3 border-t border-gray-100">
+              <button
+                onClick={() => toggle(discount.id)}
+                className="flex-1 bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-white py-2 rounded-lg text-sm font-medium transition touch-manipulation"
+              >
+                {discount.active ? 'Deactivate' : 'Activate'}
+              </button>
+              <button
+                onClick={() => { if (confirm('Delete this discount permanently?')) remove(discount.id) }}
+                className="flex-1 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white py-2 rounded-lg text-sm font-medium transition touch-manipulation"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden desk:block bg-white rounded-xl shadow overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-800 text-white">
             <tr>
@@ -122,11 +159,7 @@ function DiscountsSection() {
                       {discount.active ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm('Delete this discount permanently?')) {
-                          remove(discount.id)
-                        }
-                      }}
+                      onClick={() => { if (confirm('Delete this discount permanently?')) remove(discount.id) }}
                       className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition"
                     >
                       Delete

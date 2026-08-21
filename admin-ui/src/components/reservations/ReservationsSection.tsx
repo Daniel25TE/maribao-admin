@@ -12,7 +12,67 @@ function ReservationsSection() {
     <div>
       <h2 className="text-2xl font-bold mb-6">Reservations</h2>
 
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
+      {reservations.length === 0 && (
+        <p className="text-center text-gray-400 py-10">No reservations found</p>
+      )}
+
+      {/* Mobile: card list */}
+      <div className="flex flex-col gap-4 desk:hidden">
+        {reservations.map(reservation => (
+          <div key={reservation.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-semibold text-gray-800">{reservation.guestName}</p>
+                <p className="text-sm text-gray-500">{reservation.email}</p>
+                <p className="text-sm text-gray-500">{reservation.phone}</p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ml-2 ${getStatusColor(reservation.status)}`}>
+                {reservation.status}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Room</p>
+                <p className="font-medium text-gray-800">{reservation.roomName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Total</p>
+                <p className="font-medium text-gray-800">{formatPrice(reservation.totalPrice)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Check-in</p>
+                <p className="text-gray-700">{formatDate(reservation.checkIn)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Check-out</p>
+                <p className="text-gray-700">{formatDate(reservation.checkOut)}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+              {RESERVATION_STATUSES.filter(s => s !== reservation.status).map(status => (
+                <button
+                  key={status}
+                  onClick={() => changeStatus(reservation.id, status)}
+                  className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition touch-manipulation"
+                >
+                  {status}
+                </button>
+              ))}
+              <button
+                onClick={() => { if (confirm('Delete this reservation permanently?')) remove(reservation.id) }}
+                className="bg-red-500 hover:bg-red-600 active:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition touch-manipulation"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden desk:block bg-white rounded-xl shadow overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-800 text-white">
             <tr>
@@ -59,11 +119,7 @@ function ReservationsSection() {
                       </button>
                     ))}
                     <button
-                      onClick={() => {
-                        if (confirm('Delete this reservation permanently?')) {
-                          remove(reservation.id)
-                        }
-                      }}
+                      onClick={() => { if (confirm('Delete this reservation permanently?')) remove(reservation.id) }}
                       className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs transition"
                     >
                       Delete
